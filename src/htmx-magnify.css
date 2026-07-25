@@ -1,0 +1,45 @@
+* {
+  box-sizing: border-box;
+}
+
+.htmx-magnify-container {
+  display: inline-block;
+  position: relative;
+  outline: none;
+}
+
+.htmx-magnify-container:focus-visible {
+  outline: 2px solid #4a90e2;
+  outline-offset: 2px;
+}
+
+.htmx-magnify-glass {
+  position: absolute;
+  z-index: 999999;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+.htmx-magnify-glass.htmx-magnify-show {
+  visibility: visible;
+  opacity: 1;
+  transition: visibility 0s linear 0s, opacity 300ms;
+}
+
+.htmx-magnify-glass.htmx-magnify-hide {
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0s linear 300ms, opacity 300ms;
+}
+
+.htmx-magnify-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

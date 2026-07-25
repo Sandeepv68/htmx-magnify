@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>htmx-magnify Demo</title>
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <script src="../src/htmx-magnify.js"></script>
+  <link rel="stylesheet" href="../src/htmx-magnify.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+      background: #f5f5f5;
+      color: #333;
+    }
+    h1 { margin-bottom: 0.5rem; }
+    .subtitle { color: #666; margin-bottom: 2rem; }
+    .demo-section {
+      background: #fff;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .demo-section h2 { margin-top: 0; font-size: 1.1rem; }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      padding: 1rem;
+      background: #f9f9f9;
+      border-radius: 4px;
+    }
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .control-group label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #555;
+    }
+    .control-group input, .control-group select {
+      padding: 0.4rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      width: 120px;
+    }
+    pre {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 1rem;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-size: 0.85rem;
+    }
+    code { color: #d4d4d4; }
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      background: #4a90e2;
+      color: #fff;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      margin-left: 0.5rem;
+    }
+    .event-log {
+      margin-top: 1rem;
+      padding: 0.75rem;
+      background: #1e1e1e;
+      color: #4ec9b0;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.8rem;
+      min-height: 2rem;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>htmx-magnify <span class="badge">v1.0.0</span></h1>
+  <p class="subtitle">htmx extension for image magnification with zoom glass effect</p>
+
+  <div class="demo-section">
+    <h2>Basic Usage</h2>
+    <div
+      hx-magnify
+      hx-magnify-src="https://picsum.photos/id/1015/800/600"
+      hx-magnify-width="120"
+      hx-magnify-height="120"
+      hx-magnify-zoom="2.5"
+    >
+      <img src="https://picsum.photos/id/1015/800/600" alt="Mountain landscape" style="max-width: 100%; height: auto;">
+    </div>
+    <pre><code>&lt;div hx-magnify
+     hx-magnify-src="image.jpg"
+     hx-magnify-width="120"
+     hx-magnify-height="120"
+     hx-magnify-zoom="2.5"&gt;
+  &lt;img src="image.jpg" alt="Product" /&gt;
+&lt;/div&gt;</code></pre>
+  </div>
+
+  <div class="demo-section">
+    <h2>Interactive Configuration</h2>
+    <div class="controls">
+      <div class="control-group">
+        <label>Glass Width</label>
+        <input type="number" id="cfg-width" value="100" min="40" max="300">
+      </div>
+      <div class="control-group">
+        <label>Glass Height</label>
+        <input type="number" id="cfg-height" value="100" min="40" max="300">
+      </div>
+      <div class="control-group">
+        <label>Zoom</label>
+        <input type="number" id="cfg-zoom" value="2" min="1" max="5" step="0.5">
+      </div>
+      <div class="control-group">
+        <label>Radius (%)</label>
+        <input type="number" id="cfg-radius" value="50" min="0" max="100">
+      </div>
+      <div class="control-group">
+        <label>Border Width</label>
+        <input type="number" id="cfg-border-width" value="3" min="0" max="10">
+      </div>
+      <div class="control-group">
+        <label>Border Color</label>
+        <input type="color" id="cfg-border-color" value="#000000">
+      </div>
+      <div class="control-group">
+        <label>Shadow</label>
+        <select id="cfg-shadow">
+          <option value="true" selected>Yes</option>
+          <option value="false">No</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label>Cursor</label>
+        <select id="cfg-cursor">
+          <option value="none" selected>None</option>
+          <option value="crosshair">Crosshair</option>
+          <option value="zoom-in">Zoom-in</option>
+          <option value="pointer">Pointer</option>
+        </select>
+      </div>
+    </div>
+    <div
+      id="interactive-magnifier"
+      hx-magnify
+      hx-magnify-src="https://picsum.photos/id/1025/800/600"
+      hx-magnify-width="100"
+      hx-magnify-height="100"
+      hx-magnify-zoom="2"
+      hx-magnify-radius="50"
+      hx-magnify-border-width="3"
+      hx-magnify-border-color="#000000"
+      hx-magnify-shadow="true"
+      hx-magnify-cursor="none"
+    >
+      <img src="https://picsum.photos/id/1025/800/600" alt="Pug dog" style="max-width: 100%; height: auto;">
+    </div>
+    <div id="event-log" class="event-log">Events will appear here...</div>
+    <script>
+      const magnifier = document.getElementById("interactive-magnifier");
+      const log = document.getElementById("event-log");
+      const events = ["magnifier-initialized", "magnifier-visible", "magnifier-invisible", "magnifier-moved"];
+      events.forEach(function (evt) {
+        magnifier.addEventListener(evt, function (e) {
+          const time = new Date().toLocaleTimeString();
+          log.textContent = "[" + time + "] " + evt + "\n" + log.textContent;
+        });
+      });
+
+      const inputs = document.querySelectorAll(".controls input, .controls select");
+      inputs.forEach(function (input) {
+        input.addEventListener("change", function () {
+          if (magnifier._htmxMagnifier) magnifier._htmxMagnifier.cleanup();
+          magnifier.setAttribute("hx-magnify-width", document.getElementById("cfg-width").value);
+          magnifier.setAttribute("hx-magnify-height", document.getElementById("cfg-height").value);
+          magnifier.setAttribute("hx-magnify-zoom", document.getElementById("cfg-zoom").value);
+          magnifier.setAttribute("hx-magnify-radius", document.getElementById("cfg-radius").value);
+          magnifier.setAttribute("hx-magnify-border-width", document.getElementById("cfg-border-width").value);
+          magnifier.setAttribute("hx-magnify-border-color", document.getElementById("cfg-border-color").value);
+          magnifier.setAttribute("hx-magnify-shadow", document.getElementById("cfg-shadow").value);
+          magnifier.setAttribute("hx-magnify-cursor", document.getElementById("cfg-cursor").value);
+          htmx.process(magnifier);
+        });
+      });
+    </script>
+  </div>
+
+  <div class="demo-section">
+    <h2>Circle vs Rectangle</h2>
+    <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+      <div>
+        <p><strong>Circle (radius=50)</strong></p>
+        <div
+          hx-magnify
+          hx-magnify-src="https://picsum.photos/id/1043/400/300"
+          hx-magnify-width="100"
+          hx-magnify-height="100"
+          hx-magnify-zoom="2"
+          hx-magnify-radius="50"
+        >
+          <img src="https://picsum.photos/id/1043/400/300" alt="Forest" style="max-width: 300px; height: auto;">
+        </div>
+      </div>
+      <div>
+        <p><strong>Rectangle (radius=10)</strong></p>
+        <div
+          hx-magnify
+          hx-magnify-src="https://picsum.photos/id/1043/400/300"
+          hx-magnify-width="140"
+          hx-magnify-height="90"
+          hx-magnify-zoom="2"
+          hx-magnify-radius="10"
+        >
+          <img src="https://picsum.photos/id/1043/400/300" alt="Forest" style="max-width: 300px; height: auto;">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="demo-section">
+    <h2>htmx Integration</h2>
+    <p>The magnifier works seamlessly with htmx content swaps:</p>
+    <button
+      class="btn"
+      hx-get="https://picsum.photos/id/1035/800/600"
+      hx-target="#htmx-target"
+      hx-swap="innerHTML"
+      style="padding: 0.5rem 1rem; background: #4a90e2; color: #fff; border: none; border-radius: 4px; cursor: pointer;"
+    >
+      Load New Image
+    </button>
+    <div id="htmx-target" style="margin-top: 1rem;">
+      <div
+        hx-magnify
+        hx-magnify-src="https://picsum.photos/id/1035/800/600"
+        hx-magnify-width="100"
+        hx-magnify-height="100"
+        hx-magnify-zoom="2"
+      >
+        <img src="https://picsum.photos/id/1035/800/600" alt="Valley" style="max-width: 100%; height: auto;">
+      </div>
+    </div>
+  </div>
+
+  <div class="demo-section">
+    <h2>Keyboard Navigation</h2>
+    <p>Focus the image and use <strong>Arrow keys</strong> to move the magnifier, <strong>Escape</strong> to close.</p>
+    <div
+      hx-magnify
+      hx-magnify-src="https://picsum.photos/id/1050/800/600"
+      hx-magnify-width="120"
+      hx-magnify-height="120"
+      hx-magnify-zoom="2.5"
+    >
+      <img src="https://picsum.photos/id/1050/800/600" alt="Lake" style="max-width: 100%; height: auto;" tabindex="0">
+    </div>
+  </div>
+</body>
+</html>

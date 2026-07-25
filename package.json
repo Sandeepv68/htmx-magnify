@@ -1,0 +1,44 @@
+{
+  "name": "htmx-magnify",
+  "version": "1.0.0",
+  "description": "htmx extension for image magnification with zoom glass effect",
+  "main": "dist/htmx-magnify.min.js",
+  "module": "src/htmx-magnify.js",
+  "type": "module",
+  "scripts": {
+    "dev": "npx serve demo",
+    "build": "esbuild src/htmx-magnify.js --bundle --format=esm --outfile=dist/htmx-magnify.js && esbuild src/htmx-magnify.js --bundle --format=iife --global-name=HtmxMagnify --outfile=dist/htmx-magnify.min.js --minify",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src/ test/"
+  },
+  "keywords": [
+    "htmx",
+    "magnifier",
+    "image-zoom",
+    "magnify",
+    "zoom-glass",
+    "htmx-extension"
+  ],
+  "author": "Sandeepv68",
+  "license": "MIT",
+  "peerDependencies": {
+    "htmx.org": ">=1.9.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.20.0",
+    "htmx.org": "^1.9.12",
+    "jsdom": "^24.0.0",
+    "vitest": "^1.6.0"
+  },
+  "files": [
+    "src/",
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Sandeepv68/htmx-magnify"
+  }
+}
