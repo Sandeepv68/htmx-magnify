@@ -1,11 +1,8 @@
-* {
-  box-sizing: border-box;
-}
-
 .htmx-magnify-container {
   display: inline-block;
   position: relative;
   outline: none;
+  box-sizing: border-box;
 }
 
 .htmx-magnify-container:focus-visible {
