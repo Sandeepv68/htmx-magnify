@@ -34,6 +34,10 @@ function readNum(elt, name, fallback) {
   return Number.isFinite(n) ? n : fallback;
 }
 
+function readNumClamped(elt, name, fallback, min, max) {
+  return clamp(readNum(elt, name, fallback), min, max);
+}
+
 function readBool(elt, name, fallback) {
   const raw = readAttr(elt, name, null);
   if (raw === null) return fallback;
@@ -54,8 +58,8 @@ function getCursorPos(event, image) {
     pageX = event.pageX;
     pageY = event.pageY;
   }
-  const x = pageX - rect.left - window.pageXOffset;
-  const y = pageY - rect.top - window.pageYOffset;
+  const x = pageX - rect.left - window.scrollX;
+  const y = pageY - rect.top - window.scrollY;
   return { x, y };
 }
 
@@ -127,18 +131,21 @@ function initMagnifier(container) {
   }
 
   const config = {
-    width: readNum(container, "hx-magnify-width", DEFAULTS.width),
-    height: readNum(container, "hx-magnify-height", DEFAULTS.height),
-    zoom: readNum(container, "hx-magnify-zoom", DEFAULTS.zoom),
-    radius: readNum(container, "hx-magnify-radius", DEFAULTS.radius),
+    width: readNumClamped(container, "hx-magnify-width", DEFAULTS.width, 1, 1000),
+    height: readNumClamped(container, "hx-magnify-height", DEFAULTS.height, 1, 1000),
+    zoom: readNumClamped(container, "hx-magnify-zoom", DEFAULTS.zoom, 1, 10),
+    radius: readNumClamped(container, "hx-magnify-radius", DEFAULTS.radius, 0, 50),
     borderStyle: readAttr(container, "hx-magnify-border-style", DEFAULTS.borderStyle),
     borderColor: readAttr(container, "hx-magnify-border-color", DEFAULTS.borderColor),
-    borderWidth: readNum(container, "hx-magnify-border-width", DEFAULTS.borderWidth),
+    borderWidth: readNumClamped(container, "hx-magnify-border-width", DEFAULTS.borderWidth, 0, 20),
     shadow: readBool(container, "hx-magnify-shadow", DEFAULTS.shadow),
     cursor: readAttr(container, "hx-magnify-cursor", DEFAULTS.cursor),
   };
 
   container.classList.add("htmx-magnify-container");
+  if (!container.getAttribute("tabindex")) {
+    container.setAttribute("tabindex", "0");
+  }
 
   let image = container.querySelector("img");
   if (!image) {
@@ -168,17 +175,18 @@ function initMagnifier(container) {
   let isVisible = false;
 
   function handleShow() {
-    if (!glass) return;
+    if (!glass || isVisible) return;
     glass.classList.remove("htmx-magnify-hide");
     glass.classList.add("htmx-magnify-show");
     glass.style.pointerEvents = "auto";
     isVisible = true;
     srOnly.style.display = "";
+    container.focus();
     dispatchMagnifierEvent(container, "magnifier-visible");
   }
 
   function handleHide() {
-    if (!glass) return;
+    if (!glass || !isVisible) return;
     glass.classList.remove("htmx-magnify-show");
     glass.classList.add("htmx-magnify-hide");
     glass.style.pointerEvents = "none";
@@ -240,7 +248,7 @@ function initMagnifier(container) {
 
   function onLoad() {
     glass = createGlass(container, image, config);
-    glass.style.backgroundImage = "url('" + image.src + "')";
+    glass.style.backgroundImage = "url('" + image.src.replace(/['\\]/g, "\\$&") + "')";
     glass.style.backgroundSize =
       image.naturalWidth * config.zoom + "px " + image.naturalHeight * config.zoom + "px";
 
@@ -252,7 +260,7 @@ function initMagnifier(container) {
     glass.addEventListener("mousemove", handleMove);
     image.addEventListener("touchmove", handleMove, { passive: false });
     image.addEventListener("mousemove", handleMove);
-    window.addEventListener("keydown", handleKeyDown);
+    container.addEventListener("keydown", handleKeyDown);
 
     dispatchMagnifierEvent(container, "magnifier-initialized");
   }
@@ -269,15 +277,22 @@ function initMagnifier(container) {
     }
     image.removeEventListener("touchmove", handleMove);
     image.removeEventListener("mousemove", handleMove);
-    window.removeEventListener("keydown", handleKeyDown);
+    container.removeEventListener("keydown", handleKeyDown);
+    image.removeEventListener("error", handleImageError);
     srOnly.remove();
     container._htmxMagnifier = null;
+  }
+
+  function handleImageError() {
+    console.error("[htmx-magnify] Failed to load image:", image.src);
+    cleanup();
   }
 
   if (image.complete && image.naturalWidth > 0) {
     onLoad();
   } else {
     image.addEventListener("load", onLoad, { once: true });
+    image.addEventListener("error", handleImageError, { once: true });
   }
 
   container._htmxMagnifier = { config, cleanup, handleShow, handleHide };

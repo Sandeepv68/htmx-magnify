@@ -252,7 +252,7 @@ describe("htmx-magnify extension", () => {
       const glass = container.querySelector(".htmx-magnify-glass");
       glass.style.top = "50px";
 
-      window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp" }));
+      container.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp" }));
 
       expect(glass.style.top).toBe("40px");
     });
@@ -267,7 +267,7 @@ describe("htmx-magnify extension", () => {
       const glass = container.querySelector(".htmx-magnify-glass");
       glass.style.top = "50px";
 
-      window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown" }));
+      container.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown" }));
 
       expect(glass.style.top).toBe("60px");
     });
@@ -282,7 +282,7 @@ describe("htmx-magnify extension", () => {
       const glass = container.querySelector(".htmx-magnify-glass");
       glass.style.left = "50px";
 
-      window.dispatchEvent(
+      container.dispatchEvent(
         new KeyboardEvent("keydown", { key: "ArrowLeft" })
       );
 
@@ -299,7 +299,7 @@ describe("htmx-magnify extension", () => {
       const glass = container.querySelector(".htmx-magnify-glass");
       glass.style.left = "50px";
 
-      window.dispatchEvent(
+      container.dispatchEvent(
         new KeyboardEvent("keydown", { key: "ArrowRight" })
       );
 
@@ -313,7 +313,7 @@ describe("htmx-magnify extension", () => {
       initMagnifier(container);
       container.dispatchEvent(new MouseEvent("mouseenter"));
 
-      window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+      container.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
 
       const glass = container.querySelector(".htmx-magnify-glass");
       expect(glass.classList.contains("htmx-magnify-hide")).toBe(true);
@@ -329,7 +329,7 @@ describe("htmx-magnify extension", () => {
       const glass = container.querySelector(".htmx-magnify-glass");
       glass.style.top = "5px";
 
-      window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp" }));
+      container.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp" }));
 
       expect(glass.style.top).toBe("0px");
     });
@@ -343,7 +343,7 @@ describe("htmx-magnify extension", () => {
       const glass = container.querySelector(".htmx-magnify-glass");
       glass.style.top = "50px";
 
-      window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp" }));
+      container.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp" }));
 
       expect(glass.style.top).toBe("50px");
     });
@@ -420,6 +420,79 @@ describe("htmx-magnify extension", () => {
       expect(img.alt).toBe("Custom alt");
 
       container.remove();
+    });
+  });
+
+  describe("input validation", () => {
+    it("clamps zoom to minimum 1", () => {
+      container = createContainer({
+        "hx-magnify-src": "https://example.com/test.jpg",
+        "hx-magnify-zoom": "0",
+      });
+      initMagnifier(container);
+
+      expect(container._htmxMagnifier.config.zoom).toBe(1);
+    });
+
+    it("clamps zoom to maximum 10", () => {
+      container = createContainer({
+        "hx-magnify-src": "https://example.com/test.jpg",
+        "hx-magnify-zoom": "50",
+      });
+      initMagnifier(container);
+
+      expect(container._htmxMagnifier.config.zoom).toBe(10);
+    });
+
+    it("clamps width to minimum 1", () => {
+      container = createContainer({
+        "hx-magnify-src": "https://example.com/test.jpg",
+        "hx-magnify-width": "-10",
+      });
+      initMagnifier(container);
+
+      expect(container._htmxMagnifier.config.width).toBe(1);
+    });
+
+    it("clamps borderWidth to maximum 20", () => {
+      container = createContainer({
+        "hx-magnify-src": "https://example.com/test.jpg",
+        "hx-magnify-border-width": "100",
+      });
+      initMagnifier(container);
+
+      expect(container._htmxMagnifier.config.borderWidth).toBe(20);
+    });
+
+    it("falls back to default for non-numeric values", () => {
+      container = createContainer({
+        "hx-magnify-src": "https://example.com/test.jpg",
+        "hx-magnify-zoom": "abc",
+      });
+      initMagnifier(container);
+
+      expect(container._htmxMagnifier.config.zoom).toBe(2);
+    });
+  });
+
+  describe("container setup", () => {
+    it("sets tabindex on container", () => {
+      container = createContainer({
+        "hx-magnify-src": "https://example.com/test.jpg",
+      });
+      initMagnifier(container);
+
+      expect(container.getAttribute("tabindex")).toBe("0");
+    });
+
+    it("does not overwrite existing tabindex", () => {
+      container = createContainer({
+        "hx-magnify-src": "https://example.com/test.jpg",
+      });
+      container.setAttribute("tabindex", "5");
+      initMagnifier(container);
+
+      expect(container.getAttribute("tabindex")).toBe("5");
     });
   });
 });

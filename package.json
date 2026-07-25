@@ -4,6 +4,7 @@
   "description": "htmx extension for image magnification with zoom glass effect",
   "main": "dist/htmx-magnify.min.js",
   "module": "src/htmx-magnify.js",
+  "types": "src/htmx-magnify.d.ts",
   "type": "module",
   "scripts": {
     "dev": "npx serve .",
