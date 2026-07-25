@@ -3,16 +3,17 @@
   "version": "1.0.0",
   "description": "htmx extension for image magnification with zoom glass effect",
   "main": "dist/htmx-magnify.min.js",
-  "module": "src/htmx-magnify.js",
-  "types": "src/htmx-magnify.d.ts",
+  "module": "dist/htmx-magnify.js",
+  "types": "dist/htmx-magnify.d.ts",
   "type": "module",
   "scripts": {
     "dev": "npx serve .",
-    "build": "esbuild src/htmx-magnify.js --bundle --format=esm --outfile=dist/htmx-magnify.js && esbuild src/htmx-magnify.js --bundle --format=iife --global-name=HtmxMagnify --outfile=dist/htmx-magnify.min.js --minify",
+    "build": "esbuild src/htmx-magnify.ts --bundle --format=esm --outfile=dist/htmx-magnify.js && esbuild src/htmx-magnify.ts --bundle --format=iife --global-name=HtmxMagnify --outfile=dist/htmx-magnify.min.js --minify && tsc --emitDeclarationOnly",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "lint": "eslint src/ test/"
+    "lint": "eslint src/ test/ --ext .ts"
   },
   "keywords": [
     "htmx",
@@ -28,12 +29,15 @@
     "htmx.org": ">=1.9.0"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
     "@vitest/coverage-v8": "^1.6.0",
     "esbuild": "^0.20.0",
     "eslint": "^8.57.1",
     "eslint-plugin-vitest-globals": "^1.6.1",
     "htmx.org": "^1.9.12",
     "jsdom": "^24.0.0",
+    "typescript": "^5.9.3",
     "vitest": "^1.6.0"
   },
   "files": [

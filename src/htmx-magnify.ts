@@ -9,7 +9,26 @@ const PIXEL_PADDING = 3;
 
 const KEYPAD_STEP = 10;
 
-const DEFAULTS = {
+export interface MagnifierConfig {
+  width: number;
+  height: number;
+  zoom: number;
+  radius: number;
+  borderStyle: string;
+  borderColor: string;
+  borderWidth: number;
+  shadow: boolean;
+  cursor: string;
+}
+
+export interface MagnifierHandle {
+  config: MagnifierConfig;
+  cleanup: () => void;
+  handleShow: () => void;
+  handleHide: () => void;
+}
+
+export const DEFAULTS: MagnifierConfig = {
   width: 100,
   height: 100,
   zoom: 2,
@@ -21,53 +40,53 @@ const DEFAULTS = {
   cursor: "none",
 };
 
-function readAttr(elt, name, fallback) {
+function readAttr(elt: Element, name: string, fallback: string | null): string | null {
   const val = elt.getAttribute(name);
   if (val === null || val === "") return fallback;
   return val;
 }
 
-function readNum(elt, name, fallback) {
+function readNum(elt: Element, name: string, fallback: number): number {
   const raw = readAttr(elt, name, null);
   if (raw === null) return fallback;
   const n = Number(raw);
   return Number.isFinite(n) ? n : fallback;
 }
 
-function readNumClamped(elt, name, fallback, min, max) {
+function readNumClamped(elt: Element, name: string, fallback: number, min: number, max: number): number {
   return clamp(readNum(elt, name, fallback), min, max);
 }
 
-function readBool(elt, name, fallback) {
+function readBool(elt: Element, name: string, fallback: boolean): boolean {
   const raw = readAttr(elt, name, null);
   if (raw === null) return fallback;
   return raw === "true" || raw === "1";
 }
 
-function dispatchMagnifierEvent(elt, type) {
+function dispatchMagnifierEvent(elt: HTMLElement, type: string): void {
   elt.dispatchEvent(new CustomEvent(type, { detail: elt, bubbles: true }));
 }
 
-function getCursorPos(event, image) {
+function getCursorPos(event: MouseEvent | TouchEvent, image: HTMLImageElement): { x: number; y: number } {
   const rect = image.getBoundingClientRect();
-  let pageX, pageY;
-  if (event.touches && event.touches.length > 0) {
+  let pageX: number, pageY: number;
+  if ("touches" in event && event.touches.length > 0) {
     pageX = event.touches[0].pageX;
     pageY = event.touches[0].pageY;
   } else {
-    pageX = event.pageX;
-    pageY = event.pageY;
+    pageX = (event as MouseEvent).pageX;
+    pageY = (event as MouseEvent).pageY;
   }
   const x = pageX - rect.left - window.scrollX;
   const y = pageY - rect.top - window.scrollY;
   return { x, y };
 }
 
-function clamp(val, min, max) {
+function clamp(val: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, val));
 }
 
-function createGlass(container, image, config) {
+function createGlass(container: HTMLElement, image: HTMLImageElement, config: MagnifierConfig): HTMLDivElement {
   const glass = document.createElement("div");
   glass.className = "htmx-magnify-glass htmx-magnify-hide";
   glass.setAttribute("role", "img");
@@ -87,7 +106,7 @@ function createGlass(container, image, config) {
   return glass;
 }
 
-function positionGlass(glass, image, config, x, y) {
+function positionGlass(glass: HTMLDivElement, image: HTMLImageElement, config: MagnifierConfig, x: number, y: number): void {
   const bw = config.width / 2;
   const bh = config.height / 2;
   const zoom = config.zoom;
@@ -104,7 +123,7 @@ function positionGlass(glass, image, config, x, y) {
     "px";
 }
 
-function updateBackgroundPosition(glass, image, config) {
+function updateBackgroundPosition(glass: HTMLDivElement, image: HTMLImageElement, config: MagnifierConfig): void {
   const bw = config.width / 2;
   const bh = config.height / 2;
   const zoom = config.zoom;
@@ -121,7 +140,7 @@ function updateBackgroundPosition(glass, image, config) {
     "px";
 }
 
-function initMagnifier(container) {
+export function initMagnifier(container: HTMLElement): void {
   if (container._htmxMagnifier) return;
 
   const src = readAttr(container, "hx-magnify-src", null);
@@ -130,16 +149,16 @@ function initMagnifier(container) {
     return;
   }
 
-  const config = {
+  const config: MagnifierConfig = {
     width: readNumClamped(container, "hx-magnify-width", DEFAULTS.width, 1, 1000),
     height: readNumClamped(container, "hx-magnify-height", DEFAULTS.height, 1, 1000),
     zoom: readNumClamped(container, "hx-magnify-zoom", DEFAULTS.zoom, 1, 10),
     radius: readNumClamped(container, "hx-magnify-radius", DEFAULTS.radius, 0, 50),
-    borderStyle: readAttr(container, "hx-magnify-border-style", DEFAULTS.borderStyle),
-    borderColor: readAttr(container, "hx-magnify-border-color", DEFAULTS.borderColor),
+    borderStyle: readAttr(container, "hx-magnify-border-style", DEFAULTS.borderStyle)!,
+    borderColor: readAttr(container, "hx-magnify-border-color", DEFAULTS.borderColor)!,
     borderWidth: readNumClamped(container, "hx-magnify-border-width", DEFAULTS.borderWidth, 0, 20),
     shadow: readBool(container, "hx-magnify-shadow", DEFAULTS.shadow),
-    cursor: readAttr(container, "hx-magnify-cursor", DEFAULTS.cursor),
+    cursor: readAttr(container, "hx-magnify-cursor", DEFAULTS.cursor)!,
   };
 
   container.classList.add("htmx-magnify-container");
@@ -147,15 +166,15 @@ function initMagnifier(container) {
     container.setAttribute("tabindex", "0");
   }
 
-  let image = container.querySelector("img");
+  let image: HTMLImageElement | null = container.querySelector("img");
   if (!image) {
     image = document.createElement("img");
     image.src = src;
-    image.alt = readAttr(container, "hx-magnify-alt", "magnifier-image");
+    image.alt = readAttr(container, "hx-magnify-alt", "magnifier-image") || "magnifier-image";
     container.appendChild(image);
   } else {
     if (!image.src) image.src = src;
-    if (!image.alt) image.alt = readAttr(container, "hx-magnify-alt", "magnifier-image");
+    if (!image.alt) image.alt = readAttr(container, "hx-magnify-alt", "magnifier-image") || "magnifier-image";
   }
 
   const imgWidth = readAttr(container, "hx-magnify-img-width", null);
@@ -171,10 +190,10 @@ function initMagnifier(container) {
     "Magnifier active. Use arrow keys to navigate, Escape to close.";
   container.appendChild(srOnly);
 
-  let glass = null;
+  let glass: HTMLDivElement | null = null;
   let isVisible = false;
 
-  function handleShow() {
+  function handleShow(): void {
     if (!glass || isVisible) return;
     glass.classList.remove("htmx-magnify-hide");
     glass.classList.add("htmx-magnify-show");
@@ -185,7 +204,7 @@ function initMagnifier(container) {
     dispatchMagnifierEvent(container, "magnifier-visible");
   }
 
-  function handleHide() {
+  function handleHide(): void {
     if (!glass || !isVisible) return;
     glass.classList.remove("htmx-magnify-show");
     glass.classList.add("htmx-magnify-hide");
@@ -195,15 +214,15 @@ function initMagnifier(container) {
     dispatchMagnifierEvent(container, "magnifier-invisible");
   }
 
-  function handleMove(event) {
+  function handleMove(event: MouseEvent | TouchEvent): void {
     if (!glass || !isVisible) return;
     event.preventDefault();
-    const { x, y } = getCursorPos(event, image);
-    positionGlass(glass, image, config, x, y);
+    const { x, y } = getCursorPos(event, image!);
+    positionGlass(glass, image!, config, x, y);
     dispatchMagnifierEvent(container, "magnifier-moved");
   }
 
-  function handleKeyDown(event) {
+  function handleKeyDown(event: KeyboardEvent): void {
     if (!isVisible || !glass) return;
 
     let moved = false;
@@ -241,16 +260,16 @@ function initMagnifier(container) {
 
     if (moved) {
       event.preventDefault();
-      updateBackgroundPosition(glass, image, config);
+      updateBackgroundPosition(glass, image!, config);
       dispatchMagnifierEvent(container, "magnifier-moved");
     }
   }
 
-  function onLoad() {
-    glass = createGlass(container, image, config);
-    glass.style.backgroundImage = "url('" + image.src.replace(/['\\]/g, "\\$&") + "')";
+  function onLoad(): void {
+    glass = createGlass(container, image!, config);
+    glass.style.backgroundImage = "url('" + image!.src.replace(/['\\]/g, "\\$&") + "')";
     glass.style.backgroundSize =
-      image.naturalWidth * config.zoom + "px " + image.naturalHeight * config.zoom + "px";
+      image!.naturalWidth * config.zoom + "px " + image!.naturalHeight * config.zoom + "px";
 
     container.addEventListener("mouseenter", handleShow);
     container.addEventListener("mouseleave", handleHide);
@@ -258,14 +277,14 @@ function initMagnifier(container) {
     container.addEventListener("focusout", handleHide);
     glass.addEventListener("touchmove", handleMove, { passive: false });
     glass.addEventListener("mousemove", handleMove);
-    image.addEventListener("touchmove", handleMove, { passive: false });
-    image.addEventListener("mousemove", handleMove);
+    image!.addEventListener("touchmove", handleMove, { passive: false });
+    image!.addEventListener("mousemove", handleMove);
     container.addEventListener("keydown", handleKeyDown);
 
     dispatchMagnifierEvent(container, "magnifier-initialized");
   }
 
-  function cleanup() {
+  function cleanup(): void {
     container.removeEventListener("mouseenter", handleShow);
     container.removeEventListener("mouseleave", handleHide);
     container.removeEventListener("focusin", handleShow);
@@ -275,16 +294,16 @@ function initMagnifier(container) {
       glass.removeEventListener("mousemove", handleMove);
       glass.remove();
     }
-    image.removeEventListener("touchmove", handleMove);
-    image.removeEventListener("mousemove", handleMove);
+    image!.removeEventListener("touchmove", handleMove);
+    image!.removeEventListener("mousemove", handleMove);
     container.removeEventListener("keydown", handleKeyDown);
-    image.removeEventListener("error", handleImageError);
+    image!.removeEventListener("error", handleImageError);
     srOnly.remove();
     container._htmxMagnifier = null;
   }
 
-  function handleImageError() {
-    console.error("[htmx-magnify] Failed to load image:", image.src);
+  function handleImageError(): void {
+    console.error("[htmx-magnify] Failed to load image:", image!.src);
     cleanup();
   }
 
@@ -299,17 +318,21 @@ function initMagnifier(container) {
 }
 
 htmx.defineExtension("magnify", {
-  init: function () {
+  init(): Record<string, unknown> {
     return {};
   },
 
-  onEvent: function (name, event) {
+  onEvent(name: string, event: Event): void {
     if (name === "htmx:load" || name === "htmx:afterSwap") {
       const target =
-        name === "htmx:load" ? event.detail.elt : event.detail.target || event.detail.elt;
-      const containers = target.querySelectorAll
-        ? [target, ...target.querySelectorAll("[hx-magnify]")]
-        : [target];
+        name === "htmx:load"
+          ? (event as CustomEvent).detail.elt as HTMLElement
+          : ((event as CustomEvent).detail.target || (event as CustomEvent).detail.elt) as HTMLElement;
+      const list = target.querySelectorAll("[hx-magnify]");
+      const containers: HTMLElement[] = [target];
+      list.forEach(function (elt) {
+        containers.push(elt as HTMLElement);
+      });
       containers.forEach(function (elt) {
         if (elt.hasAttribute && elt.hasAttribute("hx-magnify")) {
           if (elt._htmxMagnifier) elt._htmxMagnifier.cleanup();
@@ -319,7 +342,7 @@ htmx.defineExtension("magnify", {
     }
 
     if (name === "htmx:afterRemoveNode") {
-      const elt = event.detail.node;
+      const elt = (event as CustomEvent).detail.node as HTMLElement | null;
       if (elt && elt._htmxMagnifier) {
         elt._htmxMagnifier.cleanup();
       }
@@ -329,8 +352,6 @@ htmx.defineExtension("magnify", {
 
 if (typeof document !== "undefined") {
   document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll("[hx-magnify]").forEach(initMagnifier);
+    document.querySelectorAll<HTMLElement>("[hx-magnify]").forEach(initMagnifier);
   });
 }
-
-export { initMagnifier, DEFAULTS };

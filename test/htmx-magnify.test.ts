@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { initMagnifier, DEFAULTS } from "../src/htmx-magnify.js";
+import { initMagnifier, DEFAULTS, type MagnifierHandle } from "../src/htmx-magnify";
 
-function createContainer(attrs = {}) {
+function createContainer(attrs: Record<string, string> = {}): HTMLElement {
   const container = document.createElement("div");
   container.setAttribute("hx-magnify", "");
   for (const [key, val] of Object.entries(attrs)) {

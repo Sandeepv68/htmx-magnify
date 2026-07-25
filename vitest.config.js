@@ -4,11 +4,11 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
-    setupFiles: ["./test/setup.js"],
+    setupFiles: ["./test/setup.ts"],
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov", "json-summary"],
-      include: ["src/**/*.js"],
+      include: ["src/**/*.ts"],
     },
   },
 });

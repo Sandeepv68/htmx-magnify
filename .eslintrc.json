@@ -10,7 +10,7 @@
   },
   "plugins": ["vitest-globals"],
   "rules": {
-    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "no-unused-vars": "off",
     "no-console": "off",
     "eqeqeq": "error",
     "no-var": "error",
@@ -18,8 +18,27 @@
   },
   "overrides": [
     {
-      "files": ["test/**/*.js"],
-      "extends": ["plugin:vitest-globals/recommended"]
+      "files": ["src/**/*.ts"],
+      "parser": "@typescript-eslint/parser",
+      "parserOptions": {
+        "project": "./tsconfig.json"
+      },
+      "plugins": ["@typescript-eslint"],
+      "extends": [
+        "plugin:@typescript-eslint/recommended"
+      ],
+      "rules": {
+        "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+        "no-unused-vars": "off"
+      }
+    },
+    {
+      "files": ["test/**/*.ts"],
+      "parser": "@typescript-eslint/parser",
+      "plugins": ["@typescript-eslint"],
+      "extends": [
+        "plugin:vitest-globals/recommended"
+      ]
     }
   ]
 }
