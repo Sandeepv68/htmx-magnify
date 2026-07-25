@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { initMagnifier, DEFAULTS } from "../src/htmx-magnify.js";
 
 function createContainer(attrs = {}) {
@@ -28,6 +28,26 @@ describe("htmx-magnify extension", () => {
   });
 
   describe("initialization", () => {
+    it("adds htmx-magnify-container class to container", () => {
+      container = createContainer({
+        "hx-magnify-src": "https://example.com/test.jpg",
+      });
+      initMagnifier(container);
+
+      expect(container.classList.contains("htmx-magnify-container")).toBe(true);
+    });
+
+    it("does not add duplicate container class on re-init", () => {
+      container = createContainer({
+        "hx-magnify-src": "https://example.com/test.jpg",
+      });
+      initMagnifier(container);
+      initMagnifier(container);
+
+      const matches = container.className.match(/htmx-magnify-container/g);
+      expect(matches).toHaveLength(1);
+    });
+
     it("creates glass element on init", () => {
       container = createContainer({
         "hx-magnify-src": "https://example.com/test.jpg",
@@ -93,7 +113,7 @@ describe("htmx-magnify extension", () => {
       initMagnifier(container);
 
       expect(spy).toHaveBeenCalledWith("[htmx-magnify] hx-magnify-src is required");
-      expect(container._htmxMagnifier == null).toBe(true);
+      expect(container._htmxMagnifier).toBeUndefined();
       spy.mockRestore();
     });
 

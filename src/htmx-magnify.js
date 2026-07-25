@@ -69,9 +69,6 @@ function createGlass(container, image, config) {
   glass.setAttribute("role", "img");
   glass.setAttribute("aria-label", "Image magnifier");
 
-  const bw = config.width / 2;
-  const bh = config.height / 2;
-
   glass.style.width = config.width + "px";
   glass.style.height = config.height + "px";
   glass.style.borderRadius = config.radius + "%";
@@ -140,6 +137,8 @@ function initMagnifier(container) {
     shadow: readBool(container, "hx-magnify-shadow", DEFAULTS.shadow),
     cursor: readAttr(container, "hx-magnify-cursor", DEFAULTS.cursor),
   };
+
+  container.classList.add("htmx-magnify-container");
 
   let image = container.querySelector("img");
   if (!image) {
